@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+
+<title>ŞİFRELEME</title>
+<style type="text/css">
+body {
+	background-color: black;
+}
+::selection {
+	background: darkgrey;
+	color: black;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: lightgreen;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  box-shadow: 0 0 5px black;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+input:checked + .slider {
+  background-color: #2196F3;
+}
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+#usta{
+  color: black;
+  font-size: 150px;
+  text-shadow: 0 0 10px white;
+  margin-top: -10px;
+  text-align: center;
+}
+#main {
+  margin-top: -150px;
+  margin-left: 30px;
+  text-align: center;
+}
+#secenek{
+	color: #2196F3;
+	margin-top: 38px;
+	margin-left: 10px;
+	cursor: pointer;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+#uyari{
+  color: red;
+  font-size: 22px;
+  margin-top: 10px;
+  text-shadow: 0 0 12px red;
+}
+</style>
+</head>
+<body>
+<input type="text" id="metot" value="varsayilan" style="width:300px; height: 45px; font-size: 25px; text-align: center; background-color: black; color: white; border: 1px solid white;" autofocus value="value text" onfocus="var temp_value=this.value; this.value=''; this.value=temp_value;">
+
+<label class="switch" style="top: 20px; left: 10px; cursor: pointer;">
+	<p id="secenek">Metin</p>
+  <input type="checkbox" id="cek" checked style="display: none;" onclick="sec()">
+  <span class="slider round" style="z-index: -1;"></span>
+</label>
+
+<p id="usta">USTA</p>
+
+<div id="main">
+ <p style="color: #2196F3; font-size: 20px;">Metin</p>
+ <textarea id="metin" style="width:400px; height: 150px; font-size: 20px; text-align: center;">metin metin</textarea>
+
+ <p style="color: lightgreen; font-size: 20px;">Şifre</p>
+ <textarea id="sifre" style="display: inline-block;width:400px; height: 150px;font-size: 20px; text-align: center;"></textarea><br>
+  <p id="uyari">HATA !!!</p>
+</div>
+
+<script>
+var metot = document.getElementById('metot');
+var secenek = document.getElementById('secenek');
+var usta = document.getElementById('usta');
+var metin = document.getElementById('metin');
+var sifre = document.getElementById('sifre');
+var uyari = document.getElementById('uyari');
+
+metot.spellcheck = false;
+metin.spellcheck = false;
+sifre.spellcheck = false;
+
+function sifrele(salt, text) {
+	var textToChars = (text) => text.split("").map((c) => c.charCodeAt(0));
+  var byteHex = (n) => ("0" + Number(n).toString(16)).substr(-2);
+  var applySaltToChar = (code) => textToChars(salt).reduce((a, b) => a ^ b, code);
+
+	sifre.value = text.split("").map(textToChars).map(applySaltToChar).map(byteHex).join("");
+}
+
+function donustur(salt, encoded) {
+	var textToChars = (text) => text.split("").map((c) => c.charCodeAt(0));
+  var applySaltToChar = (code) => textToChars(salt).reduce((a, b) => a ^ b, code);
+
+	metin.value = encoded.match(/.{1,2}/g).map((hex) => parseInt(hex, 16)).map(applySaltToChar).map((charCode) => String.fromCharCode(charCode)).join("");
+}
+
+function test(salt, encoded) {
+  var textToChars = (text) => text.split("").map((c) => c.charCodeAt(0));
+  var applySaltToChar = (code) => textToChars(salt).reduce((a, b) => a ^ b, code);
+
+  uyari.innerHTML = encoded.match(/.{1,2}/g).map((hex) => parseInt(hex, 16)).map(applySaltToChar).map((charCode) => String.fromCharCode(charCode)).join("");
+}
+
+function test2(salt, text) {
+  var textToChars = (text) => text.split("").map((c) => c.charCodeAt(0));
+  var byteHex = (n) => ("0" + Number(n).toString(16)).substr(-2);
+  var applySaltToChar = (code) => textToChars(salt).reduce((a, b) => a ^ b, code);
+
+  uyari.innerHTML = text.split("").map(textToChars).map(applySaltToChar).map(byteHex).join("");
+}
+
+function sec() {
+	if (cek.checked == true){
+  	secenek.innerHTML = "Metin";
+  	secenek.style.color = "#2196F3";
+
+    sifrele(metot.value, metin.value);
+    test(metot.value, sifre.value);
+    kontrol();
+  } else {
+  	secenek.innerHTML = "Şifre";
+  	secenek.style.color = "lightgreen";
+
+    donustur(metot.value, sifre.value);
+    test2(metot.value, metin.value);
+    kontrol2();
+  }
+  metot.focus();
+}
+
+function kontrol() {
+  if (uyari.innerHTML == metin.value){
+    uyari.style.visibility = "hidden";
+
+    usta.innerHTML = "USTA";
+    usta.style.color = "black";
+    usta.style.textShadow = "0 0 10px white";
+  } else {
+    uyari.innerHTML = "Türkçe karekter kullanıldı !!!";
+    uyari.style.visibility = "visible";
+
+    usta.innerHTML = "HATA";
+    usta.style.color = "red";
+    usta.style.textShadow = "0 0 10px black";
+  }
+}
+
+function kontrol2() {
+  if (uyari.innerHTML == sifre.value){
+    uyari.style.visibility = "hidden";
+
+    usta.innerHTML = "USTA";
+    usta.style.color = "black";
+    usta.style.textShadow = "0 0 10px white";
+  } else {
+    uyari.innerHTML = "Türkçe karekter kullanıldı !!!";
+    uyari.style.visibility = "visible";
+
+    usta.innerHTML = "HATA";
+    usta.style.color = "red";
+    usta.style.textShadow = "0 0 10px black";
+  }
+}
+
+sec();
+sifrele(metot.value, metin.value);
+test(metot.value, sifre.value);
+kontrol();
+
+metin.addEventListener("input", function() {
+	sifrele(metot.value, metin.value);
+  test(metot.value, sifre.value);
+  kontrol();
+});
+sifre.addEventListener("input", function() {
+	donustur(metot.value, sifre.value);
+  test2(metot.value, metin.value);
+  kontrol2();
+});
+metot.addEventListener("input", function() {
+	if (cek.checked == true){
+  	sifrele(metot.value, metin.value);
+    test(metot.value, sifre.value);
+    kontrol();
+  } else {
+  	donustur(metot.value, sifre.value);
+    test2(metot.value, metin.value);
+    kontrol2();
+  }
+});
+</script>
+</body>
+</html>
